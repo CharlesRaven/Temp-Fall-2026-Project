@@ -1,0 +1,16 @@
+# Personal IntelliJ settings
+.idea/
+*.iml
+
+# Generated build files
+target/
+
+# Mac files
+.DS_Store
+
+# Private local settings
+.env
+.env.*
+!.env.example
+database.properties
+.local/
