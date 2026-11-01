@@ -1,0 +1,75 @@
+
+<main class="planner-container">
+  <h2>Semester Planner</h2>
+  <p>Organize courses for your upcoming semester.</p>
+
+  <section class="planner-card">
+    <h3>Select Semester</h3>
+    
+  <select
+  aria-label="Select semester"
+  [value]="selectedSemester"
+  (change)="selectedSemester = $any($event.target).value; saveMessage = ''"
+>
+  <option>Spring 2027</option>
+  <option>Summer 2027</option>
+  <option>Fall 2027</option>
+  </select>
+
+  </section>
+
+  <section class="planner-card">
+    <h3>Available Courses</h3>
+
+    @for (course of availableCourses; track course.code) {
+      <div>
+        <p>{{ course.code }} – {{ course.name }}</p>
+        <button type="button" (click)="addCourse(course)">
+          Add Course
+        </button>
+      </div>
+    }
+  </section>
+
+  <section class="planner-card">
+    <h3>Planned Courses</h3>
+
+    @if (plannedCourses.length === 0) {
+      <p>No courses selected yet.</p>
+    }
+
+    @for (course of plannedCourses; track course.code) {
+      <div>
+        <p>{{ course.code }} – {{ course.name }}</p>
+        <button type="button" (click)="removeCourse(course)">
+          Remove Course
+        </button>
+      </div>
+    }
+  </section>
+
+ <section class="planner-card">
+  <h3>Prerequisite Validation</h3>
+
+  <button type="button" (click)="checkPrerequisites()">
+    Check Prerequisites
+  </button>
+
+  
+
+@if (validationChecked) {
+  <p role="status">{{ validationMessage }}</p>
+}
+
+
+</section>
+
+<button type="button" (click)="savePlan()">
+  Save Plan
+</button>
+
+@if (saveMessage) {
+  <p role="status">{{ saveMessage }}</p>
+}
+
+</main>

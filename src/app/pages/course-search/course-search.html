@@ -1,0 +1,46 @@
+
+<main class="course-container">
+  <h2>Course Search</h2>
+  <p>Search for FSCJ courses and view course information.</p>
+  <p class="sample-note">Sample course data for demonstration.</p>
+
+  <div class="search-box">
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      placeholder="Enter course code or name"
+      aria-label="Search courses"
+    />
+  </div>
+
+  <h3>Search Results</h3>
+
+  @for (course of filteredCourses; track course.code) {
+    <div class="course-card">
+      <div>
+        <strong>{{ course.code }}</strong>
+        <p>{{ course.title }}</p>
+      </div>
+      <button type="button" (click)="showDetails(course)">
+        Details
+      </button>
+    </div>
+  } @empty {
+    <p>No courses found.</p>
+  }
+
+  @if (selectedCourse) {
+    <section class="course-details">
+      <h3>Course Details</h3>
+      <p><strong>Course:</strong> {{ selectedCourse.code }}</p>
+      <p><strong>Title:</strong> {{ selectedCourse.title }}</p>
+      <p><strong>Credits:</strong> {{ selectedCourse.credits }}</p>
+      <p><strong>Description:</strong> {{ selectedCourse.description }}</p>
+      <p><strong>Prerequisites:</strong> {{ selectedCourse.prerequisites }}</p>
+
+      <button type="button" (click)="selectedCourse = null">
+        Close Details
+      </button>
+    </section>
+  }
+</main>

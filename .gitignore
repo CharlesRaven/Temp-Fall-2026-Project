@@ -14,3 +14,7 @@ target/
 !.env.example
 database.properties
 .local/
+
+node_modules/
+.angular/
+
