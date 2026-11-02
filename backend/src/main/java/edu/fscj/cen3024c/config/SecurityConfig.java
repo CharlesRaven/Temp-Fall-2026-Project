@@ -25,10 +25,18 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> {
             auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
 
+//            auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
+//            auth.requestMatchers(HttpMethod.GET, "/api/courses/*/prerequisites",
+//                "/v3/api-docs", "/v3/api-docs/**",
+//                "/swagger-ui.html", "/swagger-ui/**").permitAll();
+
             auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
-            auth.requestMatchers(HttpMethod.GET, "/api/courses/*/prerequisites",
-                "/v3/api-docs", "/v3/api-docs/**",
-                "/swagger-ui.html", "/swagger-ui/**").permitAll();
+
+            auth.requestMatchers("/api/courses/**").permitAll();
+
+            auth.requestMatchers(HttpMethod.GET,
+                    "/v3/api-docs", "/v3/api-docs/**",
+                    "/swagger-ui.html", "/swagger-ui/**").permitAll();
 
             auth.anyRequest().authenticated();
         });
