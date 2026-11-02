@@ -1,0 +1,49 @@
+
+<main class="dashboard-container">
+  <h2>Student Dashboard</h2>
+  <p>Welcome to your degree planning website!</p>
+
+  @if (loading) {
+    <p>Loading degree progress...</p>
+  }
+
+  @if (errorMessage) {
+    <p role="alert">{{ errorMessage }}</p>
+  }
+
+  @if (progress) {
+    <section class="dashboard-card">
+      <h3>Degree Program</h3>
+      <p>{{ progress.degreeName }}</p>
+    </section>
+
+    <section class="dashboard-card">
+      <h3>Degree Progress</h3>
+      <p>{{ completionPercentage }}% Complete</p>
+      <progress
+        [value]="completionPercentage"
+        max="100">
+      </progress>
+    </section>
+
+    <section class="dashboard-card">
+      <h3>Credit Summary</h3>
+      <p>
+        Completed Credits:
+        {{ progress.totalCreditsCompleted }}
+      </p>
+      <p>
+        Required Credits:
+        {{ progress.totalCreditsRequired }}
+      </p>
+    </section>
+
+    <section class="dashboard-card">
+      <h3>Academic Status</h3>
+      <p>Status: {{ progress.Status }}</p>
+      <p>GPA: {{ progress.GPA }}</p>
+    </section>
+  }
+</main>
+
+
