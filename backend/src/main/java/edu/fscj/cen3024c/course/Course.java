@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
+//import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "course")
@@ -33,6 +34,7 @@ public class Course {
     @Column(columnDefinition = "text")
     private String description;
 
+//    @JsonIgnore
     // The join table stores each course/prerequisite pair; catalog courses are shared.
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "course_prerequisite",
@@ -50,6 +52,38 @@ public class Course {
 
     public Set<Course> getPrerequisites() {
         return prerequisites;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Integer getCreditHours() {
+        return creditHours;
+    }
+
+    public void setCreditHours(Integer creditHours) {
+        this.creditHours = creditHours;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

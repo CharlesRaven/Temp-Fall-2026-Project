@@ -40,4 +40,33 @@ public class CourseService {
 
         return new PrerequisitesResponse(course.getCourseCode(), prerequisiteCodes);
     }
+
+    @Transactional
+    public Course createCourse(Course course) {
+        return repository.save(course);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Course> getAllCourses() {
+        return repository.findAll();
+    }
+
+    @Transactional
+    public Course updateCourse(Integer id, Course updatedCourse) {
+        Course course = repository.findById(id)
+                .orElseThrow(CourseNotFoundException::new);
+
+        course.setCourseCode(updatedCourse.getCourseCode());
+
+        return repository.save(course);
+    }
+
+    @Transactional
+    public void deleteCourse(Integer id) {
+        if (!repository.existsById(id)) {
+            throw new CourseNotFoundException();
+        }
+
+        repository.deleteById(id);
+    }
 }
