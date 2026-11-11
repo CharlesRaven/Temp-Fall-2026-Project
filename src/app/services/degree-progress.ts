@@ -23,8 +23,15 @@ export class DegreeProgressService {
   getDegreeProgress(
     studentID: number
   ): Observable<DegreeProgress> {
-    return this.http.get<DegreeProgress>(
-      `${this.apiUrl}/${studentID}/degreeProgress`
-    );
+    const token = sessionStorage.getItem('authToken');
+
+return this.http.get<DegreeProgress>(
+  `${this.apiUrl}/${studentID}/degreeProgress`,
+  {
+    headers: token
+      ? { Authorization: `Bearer ${token}` }
+      : {}
+  }
+);
   }
 }

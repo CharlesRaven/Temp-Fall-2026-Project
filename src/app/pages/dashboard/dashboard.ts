@@ -22,7 +22,7 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     // Demo student ID. Replace with a valid backend student ID.
-    const studentID = 5968431;
+    const studentID = 1;
 
     this.degreeService.getDegreeProgress(studentID)
       .subscribe({
