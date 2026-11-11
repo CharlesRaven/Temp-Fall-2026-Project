@@ -19,8 +19,26 @@ export class Login {
   password = '';
   message = '';
 
-  login() {
-    this.message = 'Logging in...';
+  
+login() {
+  if (!this.email.trim()) {
+    this.message = 'Email is required.';
+    return;
+  }
+
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim())) {
+  this.message = 'Please enter a valid email address.';
+  return;
+}
+
+
+  if (!this.password.trim()) {
+    this.message = 'Password is required.';
+    return;
+  }
+
+  this.message = 'Logging in...';
+
 
     this.http.post<{
       token: string;
