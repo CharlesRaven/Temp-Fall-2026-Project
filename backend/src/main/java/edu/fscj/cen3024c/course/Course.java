@@ -1,5 +1,7 @@
 package edu.fscj.cen3024c.course;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -38,6 +40,7 @@ public class Course {
     @JoinTable(name = "course_prerequisite",
         joinColumns = @JoinColumn(name = "course_id"),
         inverseJoinColumns = @JoinColumn(name = "prerequisite_course_id"))
+    @JsonIgnore
     private Set<Course> prerequisites = new HashSet<>();
 
     protected Course() {
@@ -51,5 +54,15 @@ public class Course {
     public Set<Course> getPrerequisites() {
         return prerequisites;
     }
+    public String getTitle() {
+    return title;
+    }
 
+    public Integer getCreditHours() {
+    return creditHours;
+     }
+
+    public String getDescription() {
+    return description;
+    }
 }

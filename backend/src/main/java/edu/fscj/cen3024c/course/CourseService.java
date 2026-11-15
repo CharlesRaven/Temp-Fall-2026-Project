@@ -39,5 +39,9 @@ public class CourseService {
         Collections.sort(prerequisiteCodes);
 
         return new PrerequisitesResponse(course.getCourseCode(), prerequisiteCodes);
-    }
-}
+        }
+        @Transactional(readOnly = true)
+        public List<Course> getAllCourses() {
+            return repository.findAll();
+        }
+        }

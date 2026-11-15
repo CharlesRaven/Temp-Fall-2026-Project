@@ -2,6 +2,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CoursePrerequisitesService } from '../../services/course-prerequisites';
 import { forkJoin } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 interface Course {
   code: string;
@@ -15,27 +16,34 @@ interface Course {
   styleUrl: './semester-planner.css'
 })
 export class SemesterPlanner implements OnInit {
+  completedCourses: string[] = [];
   private prerequisitesService = inject(CoursePrerequisitesService);
   private cdr = inject(ChangeDetectorRef);
+  private http = inject(HttpClient);
   selectedSemester = 'Spring 2027';
   saveMessage = '';
   validationMessage = '';
   validationChecked = false;
 
-  availableCourses: Course[] = [
-    {
-      code: 'COP 4847C',
-      name: 'Advanced Web Application Development'
-    },
-    {
-      code: 'CEN 4940',
-      name: 'Application Development Capstone'
-    }
-  ];
+  availableCourses: Course[] = [];
 
   plannedCourses: Course[] = [];
   
 ngOnInit(): void {
+
+  this.http.get<any[]>('/api/courses').subscribe({
+  next: (data) => {
+    this.availableCourses = data.map(course => ({
+      code: course.courseCode,
+      name: course.title
+    }));
+    this.cdr.detectChanges();
+  },
+  error: (error) => {
+    console.error('Error loading available courses:', error);
+  }
+});
+
   const savedPlan = localStorage.getItem('fscjDegreePlan');
 
   if (savedPlan) {
@@ -88,6 +96,17 @@ ngOnInit(): void {
   }
 
   this.validationMessage = 'Loading prerequisites from backend...';
+  this.http.get<{ studentID: number; completedCourses: string[] }>(
+  '/api/students/1/completedCourses'
+).subscribe({
+  next: (data) => {
+  console.log('Completed courses:', data.completedCourses);
+  this.completedCourses = data.completedCourses;
+},
+  error: (error) => {
+    console.error('Error loading completed courses:', error);
+  }
+});
 
   const requests = this.plannedCourses.map(course =>
     this.prerequisitesService.getPrerequisites(
@@ -100,10 +119,19 @@ ngOnInit(): void {
       console.log('Prerequisites received:', responses);
       this.validationMessage = responses.map(response => {
         const prerequisites = response.Prerequisites;
+        const missingPrerequisites = prerequisites.filter(
+  prerequisite => !this.completedCourses.includes(prerequisite)
+);
 
-        return prerequisites.length > 0
-          ? `${response.courseID}: Prerequisites: ${prerequisites.join(', ')}`
-          : `${response.courseID}: No prerequisites listed.`;
+      if (prerequisites.length === 0) {
+  return `${response.courseID}: No prerequisites required.`;
+}
+
+if (missingPrerequisites.length === 0) {
+  return `${response.courseID}: Prerequisites Met`;
+}
+
+return `${response.courseID}: Prerequisites Not Met - Missing: ${missingPrerequisites.join(', ')}`;
       }).join('\n');
       this.cdr.detectChanges();
     },

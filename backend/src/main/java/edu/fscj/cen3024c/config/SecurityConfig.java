@@ -26,10 +26,21 @@ public class SecurityConfig {
             auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
 
             auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
+
+            auth.requestMatchers(HttpMethod.GET, "/api/courses").permitAll();
+            
             auth.requestMatchers(HttpMethod.GET, "/api/courses/*/prerequisites",
                 "/v3/api-docs", "/v3/api-docs/**",
                 "/swagger-ui.html", "/swagger-ui/**").permitAll();
 
+           auth.requestMatchers(
+              HttpMethod.GET,
+               "/api/students/*/completedCourses"
+               ).permitAll();
+            auth.requestMatchers(
+               HttpMethod.GET,
+               "/api/students/*/degreeProgress"
+            ).permitAll();
             auth.anyRequest().authenticated();
         });
 
