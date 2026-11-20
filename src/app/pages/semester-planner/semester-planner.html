@@ -23,7 +23,7 @@
 
     @for (course of availableCourses; track course.code) {
       <div>
-        <p>{{ course.code }} – {{ course.name }}</p>
+        <p>{{ course.code.slice(0, 3) }} {{ course.code.slice(3) }} – {{ course.name }}</p>
         <button type="button" (click)="addCourse(course)">
           Add Course
         </button>
@@ -40,7 +40,7 @@
 
     @for (course of plannedCourses; track course.code) {
       <div>
-        <p>{{ course.code }} – {{ course.name }}</p>
+        <p>{{ course.code.slice(0, 3) }} {{ course.code.slice(3) }} – {{ course.name }}</p>
         <button type="button" (click)="removeCourse(course)">
           Remove Course
         </button>
