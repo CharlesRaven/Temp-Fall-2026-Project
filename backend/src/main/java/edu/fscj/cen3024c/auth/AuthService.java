@@ -14,6 +14,8 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AuthService {
@@ -28,6 +30,35 @@ public class AuthService {
         this.tokens = tokens;
         this.dummyHash = passwords.encode(UUID.randomUUID().toString());
     }
+
+
+    @Transactional
+    public void register(RegisterRequest request) {
+        String name = request.name().trim();
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        String password = request.password();
+
+        if (users.findByEmail(email).isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "An account with this email already exists"
+            );
+        }
+
+        if (password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Password is too long"
+            );
+        }
+
+        String passwordHash = passwords.encode(password);
+
+        AppUser user = new AppUser(name, email, passwordHash);
+
+        users.save(user);
+    }
+
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
