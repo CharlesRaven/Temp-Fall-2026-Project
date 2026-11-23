@@ -51,3 +51,16 @@ button {
 button:hover {
   background: #00569b;
 }
+.prerequisite-link {
+  background: none;
+  border: none;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px 8px 4px 0;
+  font-size: 1rem;
+}
+
+.prerequisite-link:hover {
+  color: #003366;
+}

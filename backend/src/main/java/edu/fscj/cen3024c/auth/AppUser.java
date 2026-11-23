@@ -32,6 +32,19 @@ public class AppUser {
         this.passwordHash = passwordHash;
         this.role = "STUDENT";
     }
+
+public AppUser(String name, String email, String passwordHash, String role) {
+    this.name = name;
+    this.email = email;
+    this.passwordHash = passwordHash;
+
+    if (!"ADMIN".equals(role) && !"STUDENT".equals(role)) {
+        throw new IllegalArgumentException("Invalid user role");
+    }
+
+    this.role = role;
+    }
+
     public Integer getId() {
         return id;
     }

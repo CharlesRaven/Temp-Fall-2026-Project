@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -34,6 +35,12 @@ public class AuthController {
         LoginResponse response = service.login(request);
         return ResponseEntity.ok().header("Cache-Control", "no-store").body(response);
     }
+    @PostMapping("/register")
+    public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
+        service.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
 
     @Operation(summary = "Show the account for the supplied Bearer token")
     @SecurityRequirement(name = "bearerAuth")

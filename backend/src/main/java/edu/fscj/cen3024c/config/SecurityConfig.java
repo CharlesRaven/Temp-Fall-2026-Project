@@ -27,6 +27,8 @@ public class SecurityConfig {
 
             auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
 
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll();
+
             auth.requestMatchers(HttpMethod.GET, "/api/courses").permitAll();
             
             auth.requestMatchers(HttpMethod.GET, "/api/courses/*/prerequisites",

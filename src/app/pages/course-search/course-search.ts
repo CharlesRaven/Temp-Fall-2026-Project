@@ -14,6 +14,7 @@ export class CourseSearch implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   searchText = '';
   selectedCourse: any = null;
+  prerequisiteCodes: string[] = [];
 
   courses = [
     {
@@ -36,7 +37,7 @@ export class CourseSearch implements OnInit {
   this.http.get<any[]>('/api/courses').subscribe({
     next: (data) => {
       this.courses = data.map(course => ({
-        code: course.courseCode,
+        code: course.courseCode.replace(/^([A-Za-z]{3})(?=\d)/, '$1 '),
         title: course.title || course.courseCode,
         credits: course.creditHours ?? 0,
         description: course.description || '',
@@ -63,8 +64,10 @@ export class CourseSearch implements OnInit {
   }
 
  
+
 showDetails(course: any) {
   this.selectedCourse = course;
+  this.prerequisiteCodes = [];
   course.prerequisites = 'Loading prerequisites...';
 
   const courseCode = course.code.replace(/\s+/g, '');
@@ -75,18 +78,34 @@ showDetails(course: any) {
   }>(`/api/courses/${encodeURIComponent(courseCode)}/prerequisites`)
     .subscribe({
       next: (response) => {
-        course.prerequisites = response.Prerequisites.length > 0
-          ? response.Prerequisites.join(', ')
+        this.prerequisiteCodes = response.Prerequisites ?? [];
+
+        course.prerequisites = this.prerequisiteCodes.length > 0
+          ? this.prerequisiteCodes.join(', ')
           : 'No prerequisites listed';
 
         this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error loading prerequisites:', error);
+        this.prerequisiteCodes = [];
         course.prerequisites = 'Unable to load prerequisites';
         this.cdr.detectChanges();
       }
     });
 }
 
+openPrerequisite(code: string) {
+  const prerequisite = this.courses.find(
+    course =>
+      course.code.replace(/\s+/g, '').toUpperCase() ===
+      code.replace(/\s+/g, '').toUpperCase()
+  );
+
+  if (prerequisite) {
+    this.showDetails(prerequisite);
+  } else {
+    alert('Course details are not available for ' + code);
+  }
+  }
 }
