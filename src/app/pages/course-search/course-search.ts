@@ -89,4 +89,18 @@ showDetails(course: any) {
     });
 }
 
+openPrerequisite(code: string) {
+  const prerequisite = this.courses.find(
+    course =>
+      course.code.replace(/\s+/g, '').toUpperCase() ===
+      code.replace(/\s+/g, '').toUpperCase()
+  );
+
+ if (prerequisite) {
+  this.searchText = prerequisite.code;
+  this.showDetails(prerequisite);
+} else {
+  alert('Course details are not available for ' + code);
+}
+  }
 }
