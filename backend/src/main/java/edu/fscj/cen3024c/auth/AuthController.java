@@ -60,13 +60,13 @@ public class AuthController {
             user.getId(), user.getName(), user.getEmail(), user.getRole());
         return ResponseEntity.ok().header("Cache-Control", "no-store").body(response);
     }
-
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, String>> invalidCredentials() {
-        Map<String, String> error = Map.of(
-            "Error", "Not Found", "Message", "Email or Password Invalid");
-        return ResponseEntity.status(404).body(error);
-    }
+    Map<String, String> error = Map.of(
+        "Error", "Unauthorized",
+        "Message", "Email or Password Invalid");
+    return ResponseEntity.status(401).body(error);
+}
 
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class})
     public ResponseEntity<Map<String, String>> invalidRequest() {

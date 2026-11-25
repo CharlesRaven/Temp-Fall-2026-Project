@@ -5,30 +5,60 @@
 
   <section class="planner-card">
     <h3>Select Semester</h3>
-    
-  <select
-  aria-label="Select semester"
-  [value]="selectedSemester"
-  (change)="selectedSemester = $any($event.target).value; saveMessage = ''"
->
-  <option>Spring 2027</option>
-  <option>Summer 2027</option>
-  <option>Fall 2027</option>
-  </select>
 
+    <select
+      aria-label="Select semester"
+      [value]="selectedSemester"
+      (change)="selectedSemester = $any($event.target).value; saveMessage = ''"
+    >
+      <option>Spring 2027</option>
+      <option>Summer 2027</option>
+      <option>Fall 2027</option>
+    </select>
   </section>
 
   <section class="planner-card">
     <h3>Available Courses</h3>
 
-    @for (course of availableCourses; track course.code) {
-      <div>
-        <p>{{ course.code.slice(0, 3) }} {{ course.code.slice(3) }} – {{ course.name }}</p>
-        <button type="button" (click)="addCourse(course)">
-          Add Course
-        </button>
-      </div>
+    @for (category of courseCategories; track category.name) {
+      <details class="course-category">
+        <summary>{{ category.name }}</summary>
+
+        @for (course of getCoursesByCategory(category.codes); track course.code) {
+          <div class="course-row">
+            <p>
+              {{ course.code.slice(0, 3) }}
+              {{ course.code.slice(3) }} – {{ course.name }}
+            </p>
+
+            <button type="button" (click)="addCourse(course)">
+              Add Course
+            </button>
+          </div>
+        } @empty {
+          <p>No courses available in this category.</p>
+        }
+      </details>
     }
+
+    <details class="course-category">
+      <summary>Other Available Courses</summary>
+
+      @for (course of otherCourses; track course.code) {
+        <div class="course-row">
+          <p>
+            {{ course.code.slice(0, 3) }}
+            {{ course.code.slice(3) }} – {{ course.name }}
+          </p>
+
+          <button type="button" (click)="addCourse(course)">
+            Add Course
+          </button>
+        </div>
+      } @empty {
+        <p>No additional courses available.</p>
+      }
+    </details>
   </section>
 
   <section class="planner-card">
@@ -39,8 +69,12 @@
     }
 
     @for (course of plannedCourses; track course.code) {
-      <div>
-        <p>{{ course.code.slice(0, 3) }} {{ course.code.slice(3) }} – {{ course.name }}</p>
+      <div class="course-row">
+        <p>
+          {{ course.code.slice(0, 3) }}
+          {{ course.code.slice(3) }} – {{ course.name }}
+        </p>
+
         <button type="button" (click)="removeCourse(course)">
           Remove Course
         </button>
@@ -48,28 +82,25 @@
     }
   </section>
 
- <section class="planner-card">
-  <h3>Prerequisite Validation</h3>
+  <section class="planner-card">
+    <h3>Prerequisite Validation</h3>
 
-  <button type="button" (click)="checkPrerequisites()">
-    Check Prerequisites
+    <button type="button" (click)="checkPrerequisites()">
+      Check Prerequisites
+    </button>
+
+    @if (validationChecked) {
+      <p role="status" style="white-space: pre-line;">
+        {{ validationMessage }}
+      </p>
+    }
+  </section>
+
+  <button type="button" (click)="savePlan()">
+    Save Plan
   </button>
 
-  
-
-@if (validationChecked) {
-  <p role="status" style="white-space: pre-line;">{{ validationMessage }}</p>
-}
-
-
-</section>
-
-<button type="button" (click)="savePlan()">
-  Save Plan
-</button>
-
-@if (saveMessage) {
-  <p role="status">{{ saveMessage }}</p>
-}
-
+  @if (saveMessage) {
+    <p role="status">{{ saveMessage }}</p>
+  }
 </main>

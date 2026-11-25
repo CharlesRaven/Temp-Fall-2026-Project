@@ -1,4 +1,3 @@
-
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +7,7 @@ export interface DegreeProgress {
   degreeName: string;
   totalCreditsRequired: number;
   totalCreditsCompleted: number;
-  GPA: number;
+  GPA: number | null;
   Status: string;
 }
 
@@ -23,15 +22,8 @@ export class DegreeProgressService {
   getDegreeProgress(
     studentID: number
   ): Observable<DegreeProgress> {
-    const token = sessionStorage.getItem('authToken');
-
-return this.http.get<DegreeProgress>(
-  `${this.apiUrl}/${studentID}/degreeProgress`,
-  {
-    headers: token
-      ? { Authorization: `Bearer ${token}` }
-      : {}
-  }
-);
+    return this.http.get<DegreeProgress>(
+      `${this.apiUrl}/${studentID}/degreeProgress`
+    );
   }
 }

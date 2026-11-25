@@ -66,7 +66,7 @@ readonly applicationDevelopmentCodes = [
   });
 }
 
- get filteredCourses() {
+get filteredCourses() {
   const query = this.searchText
     .toLowerCase()
     .replace(/\s+/g, '');
@@ -81,8 +81,11 @@ readonly applicationDevelopmentCodes = [
     const isSelectedCourse =
       this.selectedCourse?.code === course.code;
 
-    return (isApplicationDevelopment || isSelectedCourse) &&
-      (code.includes(query) || title.includes(query));
+    if (!query) {
+      return isApplicationDevelopment || isSelectedCourse;
+    }
+
+    return code.includes(query) || title.includes(query);
   });
 }
 

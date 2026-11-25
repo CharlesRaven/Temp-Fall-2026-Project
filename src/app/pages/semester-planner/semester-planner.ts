@@ -1,7 +1,7 @@
 
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CoursePrerequisitesService } from '../../services/course-prerequisites';
-import { forkJoin } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 interface Course {
@@ -27,8 +27,68 @@ export class SemesterPlanner implements OnInit {
 
   availableCourses: Course[] = [];
 
+  readonly courseCategories = [
+  {
+    name: 'General Education Coursework',
+    codes: [
+      'AMH2010', 'AMH2020', 'POS2041',
+      'ENC1101', 'ENC1101C', 'ENC1102',
+      'SPC2017', 'SPC2065', 'SPC2608',
+      'STA2023', 'AST1002', 'BSC1005',
+      'BSC2010C', 'CHM1020', 'MGF1130',
+      'MUL2010', 'PHI2010', 'PHY1020C',
+      'PHY2048C', 'PHY2053C', 'THE2000'
+    ]
+  },
+  {
+    name: 'Lower Division Coursework – 30 Credits',
+    codes: [
+      'CGS1100C', 'CIS2321C', 'CNT2001C',
+      'CET2600C', 'COP1000C', 'COP2551C',
+      'COP2360C', 'COP2800C', 'COP2842C',
+      'CTS1120C', 'CTS1131C', 'CTS1133C',
+      'CTS2437C', 'CEN2071C'
+    ]
+  },
+  {
+    name: 'Upper Division Coursework – 12 Credits',
+    codes: [
+      'GEB3213', 'ISM3113C',
+      'ISM4117C', 'ISM4212C'
+    ]
+  },
+  {
+    name: 'Application Development – 27 Credits',
+    codes: [
+      'COP3330C', 'COP3813C', 'COP4655C',
+      'COP4847C', 'CEN3024C', 'CEN3083C',
+      'CEN4025C', 'CEN4802C', 'CEN4940'
+    ]
+  }
+];
+
+getCoursesByCategory(codes: string[]): Course[] {
+  return this.availableCourses.filter(course =>
+    codes.includes(
+      course.code.replace(/\s+/g, '').toUpperCase()
+    )
+  );
+}
+
+get otherCourses(): Course[] {
+  const assignedCodes = this.courseCategories.flatMap(
+    category => category.codes
+  );
+
+  return this.availableCourses.filter(course =>
+    !assignedCodes.includes(
+      course.code.replace(/\s+/g, '').toUpperCase()
+    )
+  );
+}
+
   plannedCourses: Course[] = [];
-  
+
 ngOnInit(): void {
 
   this.http.get<any[]>('/api/courses').subscribe({
@@ -86,7 +146,7 @@ ngOnInit(): void {
       item => item.code !== course.code
     );
   }
-    checkPrerequisites(): void {
+   checkPrerequisites(): void {
   this.validationChecked = true;
 
   if (this.plannedCourses.length === 0) {
@@ -95,49 +155,79 @@ ngOnInit(): void {
     return;
   }
 
-  this.validationMessage = 'Loading prerequisites from backend...';
-  this.http.get<{ studentID: number; completedCourses: string[] }>(
-  '/api/students/1/completedCourses'
-).subscribe({
-  next: (data) => {
-  console.log('Completed courses:', data.completedCourses);
-  this.completedCourses = data.completedCourses;
-},
-  error: (error) => {
-    console.error('Error loading completed courses:', error);
-  }
-});
+  this.validationMessage =
+    'Loading prerequisites from backend...'
+  const completedCoursesRequest = this.http.get<{
+    userID: number;
+  }>('/api/v1/auth/me').pipe(
+   switchMap(user =>
+      this.http.get<{
+        studentID: number;
+        completedCourses: string[];
+      }>(`/api/students/${user.userID}/completedCourses`)
+  )
+);
 
-  const requests = this.plannedCourses.map(course =>
+  const prerequisiteRequests = this.plannedCourses.map(course =>
     this.prerequisitesService.getPrerequisites(
       course.code.replace(/\s+/g, '')
     )
   );
 
-  forkJoin(requests).subscribe({
-    next: (responses) => {
-      console.log('Prerequisites received:', responses);
-      this.validationMessage = responses.map(response => {
-        const prerequisites = response.Prerequisites;
-        const missingPrerequisites = prerequisites.filter(
-  prerequisite => !this.completedCourses.includes(prerequisite)
-);
+  forkJoin({
+    student: completedCoursesRequest,
+    prerequisites: forkJoin(prerequisiteRequests)
+  }).subscribe({
+    next: ({ student, prerequisites }) => {
 
-      if (prerequisites.length === 0) {
-  return `${response.courseID}: No prerequisites required.`;
-}
+      this.completedCourses = student.completedCourses.map(
+        code => code.replace(/\s+/g, '').toUpperCase()
+      );
 
-if (missingPrerequisites.length === 0) {
-  return `${response.courseID}: Prerequisites Met`;
-}
+      this.validationMessage = prerequisites.map(response => {
 
-return `${response.courseID}: Prerequisites Not Met - Missing: ${missingPrerequisites.join(', ')}`;
+        const groups = response.prerequisiteGroups;
+
+        if (!Array.isArray(groups)) {
+          return `${response.courseID}: Prerequisite rules unavailable.`;
+        }
+
+        if (groups.length === 0) {
+          return `${response.courseID}: No prerequisites required.`;
+        }
+
+        const missingGroups = groups.filter(group =>
+          !group.some(code =>
+            this.completedCourses.includes(
+              code.replace(/\s+/g, '').toUpperCase()
+            )
+          )
+        );
+
+        if (missingGroups.length === 0) {
+          return `${response.courseID}: Prerequisites Met`;
+        }
+
+        const missing = missingGroups.map(group =>
+          group.length > 1
+            ? `(${group.join(' OR ')})`
+            : group[0]
+        ).join(' AND ');
+
+        return `${response.courseID}: Prerequisites Not Met - Missing: ${missing}`;
+
       }).join('\n');
+
       this.cdr.detectChanges();
     },
-    error: () => {
+
+    error: (error) => {
+      console.error('Prerequisite validation failed:', error);
+
       this.validationMessage =
-        'Unable to load prerequisites from the backend. Please check that Spring Boot is running.';
+        'Unable to load completed courses or prerequisites.';
+
+      this.cdr.detectChanges();
     }
   });
 }

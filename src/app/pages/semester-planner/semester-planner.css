@@ -37,3 +37,55 @@ button {
 button:hover {
   background: #00569b;
 }
+.course-category {
+  background: white;
+  border: 1px solid #ccd4df;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.course-category summary {
+  padding: 16px;
+  background: #eaf0f7;
+  color: #003b71;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.course-category summary:hover {
+  background: #dce7f3;
+}
+
+.course-category[open] summary {
+  border-bottom: 1px solid #ccd4df;
+}
+
+.course-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.course-row:last-child {
+  border-bottom: none;
+}
+
+.course-row p {
+  margin: 0;
+  flex: 1;
+}
+
+.course-row button {
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .course-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
