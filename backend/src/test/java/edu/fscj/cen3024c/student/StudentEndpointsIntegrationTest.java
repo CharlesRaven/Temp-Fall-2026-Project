@@ -81,10 +81,18 @@ class StudentEndpointsIntegrationTest {
         }
     }
 
-    @Test
+       @Test
     void degreeProgressCountsOnlyCompletedCoursesInTheProgram() throws Exception {
         String path = "/api/students/" + studentID + "/degreeProgress";
-        HttpResponse<String> emptyProgress = send(path, null, null);
+
+        assertEquals(401, send(path, null, null).statusCode());
+
+        String login = "{\"Email\":\"" + email + "\",\"Password\":\"" + TEST_PASSWORD + "\"}";
+        HttpResponse<String> loginResponse = send("/api/v1/auth/login", login, null);
+        assertEquals(200, loginResponse.statusCode());
+        String token = json.readTree(loginResponse.body()).get("token").asString();
+
+        HttpResponse<String> emptyProgress = send(path, null, token);
         assertEquals(200, emptyProgress.statusCode());
         assertEquals(0, json.readTree(emptyProgress.body()).get("totalCreditsCompleted").intValue());
 
@@ -92,7 +100,7 @@ class StudentEndpointsIntegrationTest {
         saveProgress("COP2800C", "IN_PROGRESS");
         saveProgress("COP2334C", "COMPLETED");
 
-        HttpResponse<String> response = send(path, null, null);
+        HttpResponse<String> response = send(path, null, token);
         assertEquals(200, response.statusCode());
         JsonNode progress = json.readTree(response.body());
         assertEquals(studentID.intValue(), progress.get("studentID").intValue());
@@ -101,11 +109,11 @@ class StudentEndpointsIntegrationTest {
         assertTrue(progress.get("GPA").isNull());
 
         database.update("UPDATE app_user SET program_id = NULL WHERE user_id = ?", studentID);
-        HttpResponse<String> noProgram = send(path, null, null);
+        HttpResponse<String> noProgram = send(path, null, token);
         assertEquals(404, noProgram.statusCode());
         assertEquals("No degree program assigned to this student",
             json.readTree(noProgram.body()).get("Message").asString());
-        assertEquals(400, send("/api/students/invalid/degreeProgress", null, null).statusCode());
+        assertEquals(400, send("/api/students/invalid/degreeProgress", null, token).statusCode());
     }
 
     @Test
