@@ -1,5 +1,6 @@
-
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { switchMap } from 'rxjs';
 
 import {
   DegreeProgress,
@@ -15,25 +16,32 @@ import {
 export class Dashboard implements OnInit {
   private degreeService = inject(DegreeProgressService);
   private cdr = inject(ChangeDetectorRef);
+  private http = inject(HttpClient);
 
   progress: DegreeProgress | null = null;
   loading = true;
   errorMessage = '';
 
   ngOnInit(): void {
-    // Demo student ID. Replace with a valid backend student ID.
-    const studentID = 1;
-
-    this.degreeService.getDegreeProgress(studentID)
+    this.http.get<{ userID: number }>('/api/v1/auth/me')
+      .pipe(
+        switchMap(user =>
+          this.degreeService.getDegreeProgress(user.userID)
+        )
+      )
       .subscribe({
         next: (data) => {
           this.progress = data;
           this.loading = false;
           this.cdr.detectChanges();
         },
-        error: () => {
+        error: (error) => {
+          console.error('Degree progress error:', error);
+
           this.errorMessage =
-            'Degree progress is not available yet. The backend endpoint needs to be implemented.';
+            error.error?.Message ||
+            'Unable to load degree progress. Please log in again or try later.';
+
           this.loading = false;
           this.cdr.detectChanges();
         }
@@ -45,9 +53,21 @@ export class Dashboard implements OnInit {
       return 0;
     }
 
-    return Math.round(
+    return Math.min(100, Math.round(
       (this.progress.totalCreditsCompleted /
         this.progress.totalCreditsRequired) * 100
+    ));
+  }
+
+  get remainingCredits(): number {
+    if (!this.progress) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      this.progress.totalCreditsRequired -
+      this.progress.totalCreditsCompleted
     );
   }
 }

@@ -25,39 +25,38 @@
         Details
       </button>
     </div>
-    @if (selectedCourse && selectedCourse.code === course.code) {
+   @if (selectedCourse && selectedCourse.code === course.code) {
     <section class="course-details">
       <h3>Course Details</h3>
       <p><strong>Course:</strong> {{ selectedCourse.code }}</p>
       <p><strong>Title:</strong> {{ selectedCourse.title }}</p>
       <p><strong>Credits:</strong> {{ selectedCourse.credits }}</p>
       <p><strong>Description:</strong> {{ selectedCourse.description }}</p>
-
-<p><strong>Prerequisites:</strong></p>
+      <p><strong>Prerequisites:</strong></p>
 
 @if (prerequisiteCodes.length > 0) {
+  @if (selectedCourse.code === 'COP3330C') {
+    <p><strong>Complete one of the following courses:</strong></p>
+  }
   @for (code of prerequisiteCodes; track code) {
-    <button
-      type="button"
-      class="prerequisite-link"
-      (click)="openPrerequisite(code)">
-      {{ code.replace('COP', 'COP ') }}
-    </button>
+    <p>
+      <button
+        type="button"
+        class="prerequisite-link"
+        (click)="openPrerequisite(code)">
+        {{ getPrerequisiteLabel(code) }}
+      </button>
+    </p>
   }
 } @else {
   <p>{{ selectedCourse.prerequisites }}</p>
 }
-
-
-      <button type="button" (click)="selectedCourse = null">
+      <button type="button" (click)="selectedCourse = null; searchText = ''">
         Close Details
       </button>
-    </section>
+       </section>
   }
-
   } @empty {
     <p>No courses found.</p>
   }
-
-
 </main>

@@ -14,7 +14,20 @@ export class CourseSearch implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   searchText = '';
   selectedCourse: any = null;
+
   prerequisiteCodes: string[] = [];
+
+readonly applicationDevelopmentCodes = [
+  'COP3330C',
+  'COP3813C',
+  'COP4655C',
+  'COP4847C',
+  'CEN3024C',
+  'CEN3083C',
+  'CEN4025C',
+  'CEN4802C',
+  'CEN4940'
+];
 
   courses = [
     {
@@ -37,7 +50,7 @@ export class CourseSearch implements OnInit {
   this.http.get<any[]>('/api/courses').subscribe({
     next: (data) => {
       this.courses = data.map(course => ({
-        code: course.courseCode.replace(/^([A-Za-z]{3})(?=\d)/, '$1 '),
+        code: course.courseCode,
         title: course.title || course.courseCode,
         credits: course.creditHours ?? 0,
         description: course.description || '',
@@ -53,21 +66,34 @@ export class CourseSearch implements OnInit {
   });
 }
 
-  get filteredCourses() {
-   
-    const query = this.searchText.toLowerCase().trim();
+get filteredCourses() {
+  const query = this.searchText
+    .toLowerCase()
+    .replace(/\s+/g, '');
 
-    return this.courses.filter(course =>
-      course.code.toLowerCase().includes(query) ||
-      course.title.toLowerCase().includes(query)
-    );
-  }
+  return this.courses.filter(course => {
+    const code = course.code.toLowerCase().replace(/\s+/g, '');
+    const title = course.title.toLowerCase().replace(/\s+/g, '');
+
+    const isApplicationDevelopment =
+      this.applicationDevelopmentCodes.includes(code.toUpperCase());
+
+    const isSelectedCourse =
+      this.selectedCourse?.code === course.code;
+
+    if (!query) {
+      return isApplicationDevelopment || isSelectedCourse;
+    }
+
+    return code.includes(query) || title.includes(query);
+  });
+}
 
  
-
 showDetails(course: any) {
   this.selectedCourse = course;
   this.prerequisiteCodes = [];
+ 
   course.prerequisites = 'Loading prerequisites...';
 
   const courseCode = course.code.replace(/\s+/g, '');
@@ -77,24 +103,42 @@ showDetails(course: any) {
     Prerequisites: string[];
   }>(`/api/courses/${encodeURIComponent(courseCode)}/prerequisites`)
     .subscribe({
-      next: (response) => {
-        this.prerequisiteCodes = response.Prerequisites ?? [];
+     next: (response) => {
+  this.prerequisiteCodes = response.Prerequisites ?? [];
+const alternativeRule = course.description?.match(
+  /Prerequisites:\s*\(([A-Z]{3}\d{4}[A-Z]?(?:\s+or\s+[A-Z]{3}\d{4}[A-Z]?)+)\)/i
+);
 
-        course.prerequisites = this.prerequisiteCodes.length > 0
-          ? this.prerequisiteCodes.join(', ')
-          : 'No prerequisites listed';
+if (alternativeRule) {
+  this.prerequisiteCodes = alternativeRule[1].split(/\s+or\s+/i);
+}
+course.prerequisites = this.prerequisiteCodes.length > 0
+  ? this.prerequisiteCodes.join(', ')
+  : course.description?.match(/Prerequisites:\s*([^.]+)/i)?.[1]
+    || 'No prerequisites listed';
 
-        this.cdr.detectChanges();
-      },
+  this.cdr.detectChanges();
+},
       error: (error) => {
-        console.error('Error loading prerequisites:', error);
-        this.prerequisiteCodes = [];
-        course.prerequisites = 'Unable to load prerequisites';
-        this.cdr.detectChanges();
-      }
+  console.error('Error loading prerequisites:', error);
+  this.prerequisiteCodes = [];
+  course.prerequisites = 'Unable to load prerequisites';
+  this.cdr.detectChanges();
+}
     });
 }
+getPrerequisiteLabel(code: string): string {
+  const course = this.courses.find(c =>
+    c.code.replace(/\s+/g, '').toUpperCase() ===
+    code.replace(/\s+/g, '').toUpperCase()
+  );
 
+  const formattedCode = code.replace(/^([A-Za-z]{3})(?=\d)/, '$1 ');
+
+  return course
+    ? `${formattedCode} – ${course.title} (Credit Hours: ${course.credits})`
+    : formattedCode;
+}
 openPrerequisite(code: string) {
   const prerequisite = this.courses.find(
     course =>
@@ -102,10 +146,11 @@ openPrerequisite(code: string) {
       code.replace(/\s+/g, '').toUpperCase()
   );
 
-  if (prerequisite) {
-    this.showDetails(prerequisite);
-  } else {
-    alert('Course details are not available for ' + code);
-  }
+ if (prerequisite) {
+  this.searchText = prerequisite.code;
+  this.showDetails(prerequisite);
+} else {
+  alert('Course details are not available for ' + code);
+}
   }
 }

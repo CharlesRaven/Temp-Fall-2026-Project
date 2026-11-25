@@ -11,9 +11,10 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Each protected request supplies a Bearer token.
+
         http.sessionManagement(session -> {
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         });
@@ -23,30 +24,42 @@ public class SecurityConfig {
         });
 
         http.authorizeHttpRequests(auth -> {
+
             auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
 
-            auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll();
-
-            auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll();
-
-            auth.requestMatchers(HttpMethod.GET, "/api/courses").permitAll();
-            
-            auth.requestMatchers(HttpMethod.GET, "/api/courses/*/prerequisites",
-                "/v3/api-docs", "/v3/api-docs/**",
-                "/swagger-ui.html", "/swagger-ui/**").permitAll();
-
-           auth.requestMatchers(
-              HttpMethod.GET,
-               "/api/students/*/completedCourses"
-               ).permitAll();
             auth.requestMatchers(
-               HttpMethod.GET,
-               "/api/students/*/degreeProgress"
+                HttpMethod.POST,
+                "/api/v1/auth/login"
             ).permitAll();
+
+            auth.requestMatchers(
+                HttpMethod.POST,
+                "/api/v1/auth/register"
+            ).permitAll();
+
+            auth.requestMatchers(
+                HttpMethod.GET,
+                "/api/courses"
+            ).permitAll();
+
+            auth.requestMatchers(
+                HttpMethod.GET,
+                "/api/courses/*/prerequisites",
+                "/v3/api-docs",
+                "/v3/api-docs/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**"
+            ).permitAll();
+
+            auth.requestMatchers(
+                HttpMethod.GET,
+                "/api/students/*/completedCourses",
+                "/api/students/*/degreeProgress"
+            ).authenticated();
+
             auth.anyRequest().authenticated();
         });
 
-        // Spring Security verifies the token for us.
         http.oauth2ResourceServer(oauth -> {
             oauth.jwt(Customizer.withDefaults());
         });
