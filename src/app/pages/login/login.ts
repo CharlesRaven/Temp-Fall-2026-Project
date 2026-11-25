@@ -1,19 +1,20 @@
 
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
 export class Login {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   email = '';
   password = '';
@@ -48,14 +49,17 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email.trim())) {
       Email: this.email,
       Password: this.password
     }).subscribe({
-      next: (response) => {
-        sessionStorage.setItem('authToken', response.token);
-        this.message = 'Login successful!';
-        this.router.navigate(['/dashboard']);
-      },
-      error: () => {
-        this.message = 'Login failed. Please check your email and password.';
-      }
-    });
+	next: (response) => {
+		sessionStorage.setItem('authToken', response.token);
+		this.message = 'Login successful!';
+		this.cdr.detectChanges();
+		this.router.navigate(['/dashboard']);
+	},
+	error: (error) => {
+		console.error('Login error:', error);
+		this.message = 'Login failed. Please check your email and password.';
+		this.cdr.detectChanges();
+	}
+      });
   }
 }
